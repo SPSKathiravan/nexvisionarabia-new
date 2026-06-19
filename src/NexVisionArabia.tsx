@@ -358,7 +358,7 @@ const GLOBAL_STYLES = `
 
     /* Hero section adjustments */
     #home { min-height: 100svh; padding-left: 0 !important; padding-right: 0 !important; }
-    #home .hero-content-area { padding: 7rem 1rem 1rem !important; }
+    #home .hero-content-area { padding: 18rem 1rem 1rem !important; }
 
     /* About section */
     #about { padding: 3.5rem 1rem !important; }
@@ -819,7 +819,7 @@ function Navbar() {
     <>
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 601, background: scrolled ? "rgba(8,8,8,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid #1a1a1a" : "none", transition: "all 0.4s", padding: scrolled ? "0.75rem 1.25rem" : "1.2rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => goTo("/", "")}>
-          <img src="/headerlogo.jpg" alt="Nex Vision Arabia" decoding="async" style={{ height: "42px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
+          <img src="/headerlogo.jpg" alt="Nex Vision Arabia" decoding="async" loading="eager" fetchPriority="high" style={{ height: "42px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
         </div>
 
         <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
@@ -1099,11 +1099,11 @@ function HomePage() {
     <>
       {/* ── HERO + STATS ── */}
       <section id="home" style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden", background: "#000" }}>
-        <video src="/images/hero-video.mp4" autoPlay loop muted playsInline preload="auto" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <video src="/images/hero-video.mp4" poster="/images/hero-poster.jpg" autoPlay loop muted playsInline preload="metadata" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
-        <div className="hero-content-area" style={{ position: "relative", zIndex: 2, maxWidth: 1000, margin: "0 auto", padding: "8rem 1.25rem 2rem", width: "100%", textAlign: "center" }}>
+        <div className="hero-content-area" style={{ position: "relative", zIndex: 2, maxWidth: 1000, margin: "0 auto", padding: "16rem 1.25rem 2rem", width: "100%", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           <div style={{ display: "inline-block", animation: "fadeUp 0.8s ease forwards" }}>
-            <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "clamp(2.5rem, 6vw, 4.5rem)", color: "#F0EDE6", letterSpacing: "0.05em", lineHeight: 1.1, marginBottom: "0.8rem", textShadow: "0px 4px 15px rgba(0, 0, 0, 0.8), 0px 2px 5px rgba(0, 0, 0, 0.6)" }}>
+            <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "clamp(2.5rem, 6vw, 4.5rem)", color: "#F0EDE6", letterSpacing: "0.05em", lineHeight: 1.1, marginBottom: "0.8rem" }}>
               INTEGRATED <span style={{ color: "#C4A030" }}>INDUSTRIAL</span> SOLUTIONS
             </h1>
             <p style={{ color: "#ddd", fontSize: "clamp(0.95rem, 2.5vw, 1.15rem)", fontWeight: 400, maxWidth: "650px", margin: "0 auto", lineHeight: 1.6, textShadow: "0px 2px 10px rgba(0, 0, 0, 0.9)" }}>
@@ -1122,6 +1122,19 @@ function HomePage() {
             ].map((stat, i) => (
               <StatItem key={i} value={stat.value} suffix={stat.suffix} label={stat.label} active={statsActive} />
             ))}
+          </div>
+        </div>
+        {/* Small infinite-scroll services strip */}
+        <div style={{ position: "relative", zIndex: 2, width: "100%", borderTop: "1px solid #C4A030", borderBottom: "1px solid #C4A030", background: "#000", overflow: "hidden", padding: "0.5rem 0" }}>
+          <div className="marquee-wrap">
+            <div className="marquee-track" style={{ alignItems: "center", animationDuration: "18s" }}>
+              {[...Array(6)].flatMap(() => ["Material Supplies", "Equipment Rental", "Manpower Supplies"]).map((item, i) => (
+                <span key={i} style={{ fontFamily: "'Inter',sans-serif", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C4A030", display: "inline-flex", alignItems: "center", gap: "2.5rem" }}>
+                  {item}
+                  <span style={{ color: "#555", fontSize: "0.6rem" }}>✦</span>
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
