@@ -733,7 +733,7 @@ function Navbar() {
   ];
 
   return (
-    <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? "rgba(8,8,8,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid #1a1a1a" : "none", transition: "all 0.4s", padding: scrolled ? "0.75rem 1.25rem" : "1.2rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 601, background: scrolled ? "rgba(8,8,8,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid #1a1a1a" : "none", transition: "all 0.4s", padding: scrolled ? "0.75rem 1.25rem" : "1.2rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => goTo("/")}>
         <img src="/headerlogo.jpg" alt="Nex Vision Arabia" style={{ height: "42px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
       </div>
@@ -759,7 +759,7 @@ function Navbar() {
 
       {/* Full-screen mobile menu */}
       {menuOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 99, background: "#000", display: "flex", flexDirection: "column", animation: "fadeIn 0.25s ease", overflow: "hidden", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "#000", display: "flex", flexDirection: "column", animation: "fadeIn 0.25s ease", overflow: "hidden", WebkitOverflowScrolling: "touch" }}>
           {/* Menu header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", borderBottom: "1px solid #1a1a1a", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
