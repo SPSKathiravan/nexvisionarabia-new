@@ -749,15 +749,14 @@ function Navbar() {
           <button className="gold-btn" onClick={() => goTo("/", "#contact")} style={{ padding: "0.55rem 1.4rem", borderRadius: "0.4rem", fontSize: "0.85rem" }}>Get In Touch</button>
         </div>
 
-        {/* ── FIX 1: Hamburger always has a visible dark background so it's
-            tappable anywhere on the page regardless of scroll position ── */}
+        {/* ── Hamburger: animates to X when menu open, always visible ── */}
         <button
           className="mobile-btn"
           onClick={() => setMenuOpen(m => !m)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           style={{
             background: "rgba(10,10,10,0.85)",
-            border: "1px solid #444",
+            border: menuOpen ? "1px solid rgba(196,160,48,0.5)" : "1px solid #444",
             color: "#F0EDE6",
             borderRadius: "0.4rem",
             padding: "0.6rem 0.75rem",
@@ -769,30 +768,76 @@ function Navbar() {
             alignItems: "center",
             justifyContent: "center",
             WebkitTapHighlightColor: "transparent",
+            position: "relative",
+            zIndex: 10001,
+            transition: "border-color 0.3s",
           }}>
-          {[0, 1, 2].map(i => (
-            <span key={i} style={{ display: "block", width: 20, height: 2, background: "#C4A030", borderRadius: 2, transition: "transform 0.3s" }} />
-          ))}
+          {/* Bar 1 — rotates to top of X */}
+          <span style={{
+            display: "block", width: 20, height: 2,
+            background: "#C4A030", borderRadius: 2,
+            transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.2s",
+            transform: menuOpen ? "translateY(7px) rotate(45deg)" : "none",
+          }} />
+          {/* Bar 2 — fades out */}
+          <span style={{
+            display: "block", width: 20, height: 2,
+            background: "#C4A030", borderRadius: 2,
+            transition: "opacity 0.2s, transform 0.35s",
+            opacity: menuOpen ? 0 : 1,
+            transform: menuOpen ? "scaleX(0)" : "none",
+          }} />
+          {/* Bar 3 — rotates to bottom of X */}
+          <span style={{
+            display: "block", width: 20, height: 2,
+            background: "#C4A030", borderRadius: 2,
+            transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.2s",
+            transform: menuOpen ? "translateY(-7px) rotate(-45deg)" : "none",
+          }} />
         </button>
       </nav>
 
-      {/* ── FIX 2: Mobile menu rendered OUTSIDE <nav> so it is a direct child
-          of the document root stacking context. z-index 9999 now truly means
-          top of page — it is no longer scoped inside the nav's stacking context.
-          Previously it was position:fixed zIndex:600 inside a position:fixed
-          zIndex:601 nav, which kept it trapped inside the nav's stacking context
-          and caused it to be hidden behind other elements when scrolled. ── */}
-      {menuOpen && (
+      {/* ── Mobile menu: slides in from right, rendered outside <nav> ── */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 10000,
+          pointerEvents: menuOpen ? "auto" : "none",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {/* Dark backdrop — fades in */}
+        <div
+          onClick={() => setMenuOpen(false)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: menuOpen ? "blur(4px)" : "none",
+            WebkitBackdropFilter: menuOpen ? "blur(4px)" : "none",
+            opacity: menuOpen ? 1 : 0,
+            transition: "opacity 0.4s ease, backdrop-filter 0.4s ease",
+          }}
+        />
+        {/* Slide panel — comes in from right */}
         <div
           style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            background: "#000",
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "min(340px, 90vw)",
+            background: "linear-gradient(160deg, #0a0a0a 0%, #050505 100%)",
+            borderLeft: "1px solid #1a1a1a",
             display: "flex",
             flexDirection: "column",
-            animation: "fadeIn 0.25s ease",
-            overflow: "hidden",
+            transform: menuOpen ? "translateX(0)" : "translateX(100%)",
+            transition: "transform 0.42s cubic-bezier(0.4,0,0.2,1)",
+            boxShadow: menuOpen ? "-20px 0 60px rgba(0,0,0,0.8)" : "none",
+            overflowY: "auto",
             WebkitOverflowScrolling: "touch",
           }}
         >
@@ -807,13 +852,26 @@ function Navbar() {
               style={{ background: "rgba(196,160,48,0.1)", border: "1px solid rgba(196,160,48,0.3)", color: "#C4A030", width: 44, height: 44, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.1rem", fontWeight: 700, WebkitTapHighlightColor: "transparent" }}>✕</button>
           </div>
 
-          {/* Nav links — scrollable area */}
+          {/* Nav links — staggered slide-in from right */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem 1.5rem", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
             {NAV.map(({ label, action }, i) => {
               const isActive = (label === "Home" && isHome) || (label === "Our Services" && isServices);
               return (
                 <button key={label} onClick={action}
-                  style={{ background: "none", border: "none", borderBottom: "1px solid #111", color: isActive ? "#C4A030" : "#F0EDE6", fontFamily: "'Bebas Neue',sans-serif", fontSize: "clamp(1.7rem,7vw,2.2rem)", letterSpacing: "0.12em", cursor: "pointer", textAlign: "left", padding: "1rem 0", display: "flex", alignItems: "center", justifyContent: "space-between", animation: `fadeUp 0.4s ease ${i * 0.07}s both`, transition: "color 0.2s", minHeight: 60, WebkitTapHighlightColor: "transparent" }}
+                  style={{
+                    background: "none", border: "none", borderBottom: "1px solid #111",
+                    color: isActive ? "#C4A030" : "#F0EDE6",
+                    fontFamily: "'Bebas Neue',sans-serif",
+                    fontSize: "clamp(1.7rem,7vw,2.2rem)",
+                    letterSpacing: "0.12em", cursor: "pointer", textAlign: "left",
+                    padding: "1rem 0", display: "flex", alignItems: "center",
+                    justifyContent: "space-between",
+                    /* staggered slide-in only when open */
+                    opacity: menuOpen ? 1 : 0,
+                    transform: menuOpen ? "translateX(0)" : "translateX(30px)",
+                    transition: `opacity 0.35s ease ${0.18 + i * 0.07}s, transform 0.35s cubic-bezier(0.4,0,0.2,1) ${0.18 + i * 0.07}s, color 0.2s`,
+                    minHeight: 60, WebkitTapHighlightColor: "transparent",
+                  }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#C4A030"}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = isActive ? "#C4A030" : "#F0EDE6"}
                 >
@@ -824,8 +882,13 @@ function Navbar() {
             })}
           </div>
 
-          {/* Bottom CTA area */}
-          <div style={{ padding: "1.25rem 1.5rem", borderTop: "1px solid #1a1a1a", background: "#080808", flexShrink: 0 }}>
+          {/* Bottom CTA area — slides up */}
+          <div style={{
+            padding: "1.25rem 1.5rem", borderTop: "1px solid #1a1a1a", background: "#080808", flexShrink: 0,
+            opacity: menuOpen ? 1 : 0,
+            transform: menuOpen ? "translateY(0)" : "translateY(20px)",
+            transition: `opacity 0.35s ease 0.55s, transform 0.35s ease 0.55s`,
+          }}>
             <button className="gold-btn" onClick={() => { goTo("/", "#contact"); setMenuOpen(false); }} style={{ width: "100%", padding: "1rem", borderRadius: "0.5rem", fontSize: "1rem", marginBottom: "1rem", letterSpacing: "0.05em" }}>Get In Touch →</button>
             <div className="mobile-contact-row" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
               <a href="tel:+966537637629" style={{ textDecoration: "none", textAlign: "center" }}>
@@ -839,8 +902,8 @@ function Navbar() {
               </a>
             </div>
           </div>
-        </div>
-      )}
+        </div>{/* end slide panel */}
+      </div>{/* end overlay wrapper */}
     </>
   );
 }
