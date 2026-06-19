@@ -733,33 +733,69 @@ function Navbar() {
   ];
 
   return (
-    <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 601, background: scrolled ? "rgba(8,8,8,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid #1a1a1a" : "none", transition: "all 0.4s", padding: scrolled ? "0.75rem 1.25rem" : "1.2rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => goTo("/")}>
-        <img src="/headerlogo.jpg" alt="Nex Vision Arabia" style={{ height: "42px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
-      </div>
+    <>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 601, background: scrolled ? "rgba(8,8,8,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid #1a1a1a" : "none", transition: "all 0.4s", padding: scrolled ? "0.75rem 1.25rem" : "1.2rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => goTo("/")}>
+          <img src="/headerlogo.jpg" alt="Nex Vision Arabia" style={{ height: "42px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
+        </div>
 
-      <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-        {NAV.map(({ label, action }) => {
-          const isActive = (label === "Home" && isHome) || (label === "Our Services" && isServices);
-          return (
-            <button key={label} className={`nav-link${isActive ? " active-link" : ""}`} onClick={action}>{label}</button>
-          );
-        })}
-        <button className="gold-btn" onClick={() => goTo("/", "#contact")} style={{ padding: "0.55rem 1.4rem", borderRadius: "0.4rem", fontSize: "0.85rem" }}>Get In Touch</button>
-      </div>
+        <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+          {NAV.map(({ label, action }) => {
+            const isActive = (label === "Home" && isHome) || (label === "Our Services" && isServices);
+            return (
+              <button key={label} className={`nav-link${isActive ? " active-link" : ""}`} onClick={action}>{label}</button>
+            );
+          })}
+          <button className="gold-btn" onClick={() => goTo("/", "#contact")} style={{ padding: "0.55rem 1.4rem", borderRadius: "0.4rem", fontSize: "0.85rem" }}>Get In Touch</button>
+        </div>
 
-      {/* Mobile hamburger — min touch target 44px */}
-      <button
-        className="mobile-btn"
-        onClick={() => setMenuOpen(m => !m)}
-        aria-label={menuOpen ? "Close menu" : "Open menu"}
-        style={{ background: "none", border: "1px solid #2a2a2a", color: "#F0EDE6", borderRadius: "0.4rem", padding: "0.6rem 0.75rem", cursor: "pointer", flexDirection: "column", gap: "5px", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center", WebkitTapHighlightColor: "transparent" }}>
-        {[0, 1, 2].map(i => <span key={i} style={{ display: "block", width: 20, height: 2, background: "#C4A030", borderRadius: 2, transition: "transform 0.3s" }} />)}
-      </button>
+        {/* ── FIX 1: Hamburger always has a visible dark background so it's
+            tappable anywhere on the page regardless of scroll position ── */}
+        <button
+          className="mobile-btn"
+          onClick={() => setMenuOpen(m => !m)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          style={{
+            background: "rgba(10,10,10,0.85)",
+            border: "1px solid #444",
+            color: "#F0EDE6",
+            borderRadius: "0.4rem",
+            padding: "0.6rem 0.75rem",
+            cursor: "pointer",
+            flexDirection: "column",
+            gap: "5px",
+            minWidth: 44,
+            minHeight: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            WebkitTapHighlightColor: "transparent",
+          }}>
+          {[0, 1, 2].map(i => (
+            <span key={i} style={{ display: "block", width: 20, height: 2, background: "#C4A030", borderRadius: 2, transition: "transform 0.3s" }} />
+          ))}
+        </button>
+      </nav>
 
-      {/* Full-screen mobile menu */}
+      {/* ── FIX 2: Mobile menu rendered OUTSIDE <nav> so it is a direct child
+          of the document root stacking context. z-index 9999 now truly means
+          top of page — it is no longer scoped inside the nav's stacking context.
+          Previously it was position:fixed zIndex:600 inside a position:fixed
+          zIndex:601 nav, which kept it trapped inside the nav's stacking context
+          and caused it to be hidden behind other elements when scrolled. ── */}
       {menuOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 600, background: "#000", display: "flex", flexDirection: "column", animation: "fadeIn 0.25s ease", overflow: "hidden", WebkitOverflowScrolling: "touch" }}>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "#000",
+            display: "flex",
+            flexDirection: "column",
+            animation: "fadeIn 0.25s ease",
+            overflow: "hidden",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
           {/* Menu header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", borderBottom: "1px solid #1a1a1a", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
@@ -805,7 +841,7 @@ function Navbar() {
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 }
 
@@ -1024,8 +1060,6 @@ function HomePage() {
               Send Message
             </button>
           </form>
-
-
         </div>
       </section>
 
@@ -1153,7 +1187,7 @@ const MANPOWER_CATEGORIES = [
   },
 ];
 
-// ── AnimatedSection — lower threshold on mobile for better trigger ─────────────
+// ── AnimatedSection ───────────────────────────────────────────────────────────
 function AnimatedSection({ children, delay = 0, direction = "up" }: { children: React.ReactNode; delay?: number; direction?: "up" | "left" | "right" }) {
   const { ref, visible } = useInView(0.05);
   const animMap = { up: "svReveal", left: "svSlideLeft", right: "svSlideRight" };
