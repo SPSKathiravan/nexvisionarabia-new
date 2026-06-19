@@ -357,7 +357,7 @@ const GLOBAL_STYLES = `
     }
 
     /* Hero section adjustments */
-    #home { min-height: 100svh; }
+    #home { min-height: 100svh; padding-left: 0 !important; padding-right: 0 !important; }
     #home .hero-content-area { padding: 7rem 1rem 1rem !important; }
 
     /* About section */
@@ -1016,6 +1016,7 @@ function Footer() {
           <div>
             <img src="/footerlogo.png" alt="Nex Vision Arabia" loading="lazy" decoding="async" style={{ height: "40px", width: "auto", objectFit: "contain", marginBottom: "0.85rem" }} />
             <p style={{ color: "#555", fontSize: "0.8rem", lineHeight: 1.8 }}>Industrial Solutions, Quality Revolution. Serving Saudi Arabia with manpower, equipment, and material supply.</p>
+            <img src="/images/vision2030.png" alt="Vision 2030 Saudi Arabia" loading="lazy" decoding="async" style={{ height: "55px", width: "auto", objectFit: "contain", marginTop: "1rem" }} />
           </div>
           <div>
             <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "1rem", letterSpacing: "0.1em", color: "#C4A030", marginBottom: "1rem" }}>Quick Links</div>
