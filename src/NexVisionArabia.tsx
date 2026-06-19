@@ -99,7 +99,7 @@ function InnerPageView({ page }: { page: InnerPage }) {
     <div className="book-page" style={{ padding: 0, display: "flex", flexDirection: "column" }}>
       <div className="book-page-imgbox" style={{ width: "100%", height: "100%", marginBottom: 0, borderRadius: 0, overflow: "hidden", background: "#111" }}>
         {page.imgSrc ? (
-          <img src={page.imgSrc} alt="Catalog Page" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => console.error("Failed to load inner page image:", page.imgSrc)} />
+          <img src={page.imgSrc} alt="Catalog Page" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => console.error("Failed to load inner page image:", page.imgSrc)} />
         ) : (
           <div className="img-placeholder">
             <span>+</span>
@@ -115,6 +115,7 @@ function CatalogBookModal({ catalog, onClose }: { catalog: CatalogDef; onClose: 
   const [phase, setPhase] = useState<"cover" | "inner" | "back">("cover");
   const [spreadIdx, setSpreadIdx] = useState(0);
   const [animKey, setAnimKey] = useState(0);
+  const [turnDir, setTurnDir] = useState<"next" | "prev" | "none">("none");
 
   useEffect(() => {
     console.log("Catalog Opened:", catalog.key, "Cover Image Path:", catalog.coverImg);
@@ -125,13 +126,13 @@ function CatalogBookModal({ catalog, onClose }: { catalog: CatalogDef; onClose: 
   const rightPage = catalog.pages[spreadIdx * 2 + 1];
 
   const goNext = () => {
-    if (phase === "cover") { setPhase("inner"); setSpreadIdx(0); setAnimKey(k => k + 1); }
-    else if (phase === "inner") { if (spreadIdx < TOTAL_SPREADS - 1) { setSpreadIdx(i => i + 1); setAnimKey(k => k + 1); } else { setPhase("back"); } }
+    if (phase === "cover") { setTurnDir("next"); setPhase("inner"); setSpreadIdx(0); setAnimKey(k => k + 1); }
+    else if (phase === "inner") { if (spreadIdx < TOTAL_SPREADS - 1) { setTurnDir("next"); setSpreadIdx(i => i + 1); setAnimKey(k => k + 1); } else { setPhase("back"); } }
   };
 
   const goPrev = () => {
-    if (phase === "back") { setPhase("inner"); setSpreadIdx(TOTAL_SPREADS - 1); setAnimKey(k => k + 1); }
-    else if (phase === "inner") { if (spreadIdx > 0) { setSpreadIdx(i => i - 1); setAnimKey(k => k + 1); } else { setPhase("cover"); } }
+    if (phase === "back") { setTurnDir("prev"); setPhase("inner"); setSpreadIdx(TOTAL_SPREADS - 1); setAnimKey(k => k + 1); }
+    else if (phase === "inner") { if (spreadIdx > 0) { setTurnDir("prev"); setSpreadIdx(i => i - 1); setAnimKey(k => k + 1); } else { setPhase("cover"); } }
   };
 
   const leftPageNum  = spreadIdx * 2 + 2;
@@ -146,7 +147,7 @@ function CatalogBookModal({ catalog, onClose }: { catalog: CatalogDef; onClose: 
         <div className="book-cover-card" onClick={goNext} style={{ cursor: "pointer", overflow: "hidden" }}>
           <div className="book-page-imgbox" style={{ position: "absolute", inset: 0, height: "100%", width: "100%", zIndex: 0 }}>
             {catalog.coverImg ? (
-              <img src={catalog.coverImg} alt={catalog.coverTitle} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => console.error("Cover image failed to load:", catalog.coverImg)} />
+              <img src={catalog.coverImg} alt={catalog.coverTitle} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => console.error("Cover image failed to load:", catalog.coverImg)} />
             ) : (
               <div className="img-placeholder"><span>+</span>Add cover PNG here</div>
             )}
@@ -161,14 +162,17 @@ function CatalogBookModal({ catalog, onClose }: { catalog: CatalogDef; onClose: 
         <div className="book-spread-wrap">
           <div className="spread-label">Pages {leftPageNum}–{rightPageNum} of {totalPagesCount}</div>
           <button className="nav-arrow left" onClick={goPrev} aria-label="Previous">‹</button>
-          <div key={animKey} className="book-spread-pages" style={{ gap: 0 }}>
+          
+          {/* Changed className to dynamically inject turn direction for 3D CSS flip */}
+          <div key={animKey} className={`book-spread-pages turn-${turnDir}`}>
             <InnerPageView page={leftPage}  />
             <InnerPageView page={rightPage} />
           </div>
+          
           <button className="nav-arrow right" onClick={goNext} aria-label="Next">›</button>
           <div className="dots-row">
             {Array.from({ length: TOTAL_SPREADS }).map((_, i) => (
-              <button key={i} className={`dot${i === spreadIdx ? " active" : ""}`} onClick={() => { setSpreadIdx(i); setAnimKey(k => k + 1); }} aria-label={`Spread ${i + 1}`} />
+              <button key={i} className={`dot${i === spreadIdx ? " active" : ""}`} onClick={() => { setTurnDir(i > spreadIdx ? "next" : "prev"); setSpreadIdx(i); setAnimKey(k => k + 1); }} aria-label={`Spread ${i + 1}`} />
             ))}
           </div>
         </div>
@@ -177,7 +181,7 @@ function CatalogBookModal({ catalog, onClose }: { catalog: CatalogDef; onClose: 
       {phase === "back" && (
         <div className="book-back-cover" onClick={goPrev} style={{ position: "relative", cursor: "pointer", overflow: "hidden" }}>
           <div className="book-page-imgbox" style={{ position: "absolute", inset: 0, height: "100%", width: "100%", zIndex: 0 }}>
-            <img src="/images/back-qr.png" alt="QR Code" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => console.error("Back QR failed to load")} />
+            <img src="/images/back-qr.png" alt="QR Code" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => console.error("Back QR failed to load")} />
           </div>
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10, padding: "2rem", display: "flex", justifyContent: "center", background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}>
             <div className="back-cta" style={{ padding: "0.6rem 1.4rem" }}>← CLICK TO GO BACK</div>
@@ -188,41 +192,19 @@ function CatalogBookModal({ catalog, onClose }: { catalog: CatalogDef; onClose: 
   );
 }
 
+// ── CatalogLauncher ────
 function CatalogLauncher() {
-  const [fanOpen, setFanOpen] = useState(false);
   const [activeCatalog, setActiveCatalog] = useState<CatalogDef | null>(null);
-  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const openCatalog = (cat: CatalogDef) => { setActiveCatalog(cat); setFanOpen(false); };
-
-  const onEnter = () => {
-    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-    setFanOpen(true);
-  };
-
-  const onLeave = () => {
-    hoverTimeout.current = setTimeout(() => { setFanOpen(false); }, 300);
-  };
-
-  const fanTransforms = [
-    { tx: -85, ty: -5, rot: -20 },
-    { tx: -40, ty: -70, rot: -5 },
-    { tx: 10,  ty: -55, rot: 10 },
-  ];
 
   return (
     <>
-      <div onMouseEnter={onEnter} onMouseLeave={onLeave}>
-        {fanTransforms.map((ft, i) => (
-          <button key={i} className="catalog-fan-card" onClick={() => openCatalog(MASTER_CATALOG)} onMouseEnter={onEnter} onMouseLeave={onLeave}
-            style={{ transform: fanOpen ? `translate(${ft.tx}px, ${ft.ty}px) rotate(${ft.rot}deg)` : "translate(0,0) rotate(0deg) scale(0.7)", opacity: fanOpen ? 1 : 0, transitionDelay: fanOpen ? `${i * 0.06}s` : "0s", pointerEvents: fanOpen ? "auto" : "none" }}>
-            Catalog
-          </button>
-        ))}
-        <button className="catalog-badge" onClick={() => setFanOpen(v => !v)} onMouseEnter={onEnter} onMouseLeave={onLeave} aria-label="Open catalogs">
-          <img src="favicon.ico.jpeg" alt="Nex Vision Arabia" style={{ width: "44px", height: "auto", objectFit: "contain", zIndex: 2, borderRadius: "4px" }} />
-        </button>
-      </div>
+      <button
+        className="catalog-badge"
+        onClick={() => setActiveCatalog(MASTER_CATALOG)}
+        aria-label="Open catalog"
+      >
+        <img src="/favicon.ico.jpeg" alt="Nex Vision Arabia" loading="lazy" decoding="async" style={{ width: "44px", height: "auto", objectFit: "contain", zIndex: 2, borderRadius: "4px" }} />
+      </button>
       {activeCatalog && <CatalogBookModal catalog={activeCatalog} onClose={() => setActiveCatalog(null)} />}
     </>
   );
@@ -304,10 +286,10 @@ const GLOBAL_STYLES = `
   input::placeholder, textarea::placeholder { color:#555; }
 
   .marquee-wrap { overflow:hidden; mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent); }
-  .marquee-track { display:flex; gap:2.5rem; animation:marquee 35s linear infinite; white-space:nowrap; }
+  .marquee-track { display:flex; gap:2.5rem; animation:marquee 35s linear infinite; white-space:nowrap; will-change: transform; }
   .marquee-track:hover { animation-play-state:paused; }
 
-  .service-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  .service-card { transition: transform 0.3s ease, box-shadow 0.3s ease; will-change: transform, box-shadow; }
   .service-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(196,160,48,0.3); }
 
   /* ── Desktop nav / Mobile toggle ── */
@@ -412,6 +394,9 @@ const GLOBAL_STYLES = `
 
     /* Buttons full width on mobile where applicable */
     .outline-btn-mobile-full { width: 100% !important; text-align: center; }
+
+    /* Service preview cards mobile */
+    .service-preview-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
   }
 
   /* Tablet adjustments */
@@ -420,12 +405,12 @@ const GLOBAL_STYLES = `
     .values-grid { grid-template-columns: repeat(2,1fr) !important; }
     .footer-grid { grid-template-columns: repeat(2,1fr) !important; }
     .form-name-email { grid-template-columns: 1fr 1fr; }
+    .service-preview-grid { grid-template-columns: repeat(3,1fr) !important; }
   }
 
   /* ── Catalog Overlay ── */
   @keyframes overlayIn { from { opacity:0; } to { opacity:1; } }
   @keyframes coverIn { from { opacity:0; transform:scale(0.92) translateY(10px); } to { opacity:1; transform:none; } }
-  @keyframes pageIn { from { opacity:0; transform:translateX(14px); } to { opacity:1; transform:none; } }
 
   .catalog-badge {
     position: fixed; bottom: 30px; right: 30px; z-index: 500;
@@ -442,19 +427,6 @@ const GLOBAL_STYLES = `
     width: 32px; height: 9px; background: #C4A030; border-radius: 6px 6px 0 0;
   }
   .catalog-badge:hover { transform: scale(1.05); }
-
-  .catalog-fan-card {
-    position: fixed; bottom: 35px; right: 35px; z-index: 499;
-    background: #ffffff; color: #333; border: none; border-radius: 6px;
-    width: 70px; height: 48px; display: flex; align-items: center;
-    justify-content: center; font-family: 'Inter', sans-serif; font-size: 0.75rem;
-    font-weight: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer;
-    transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
-    will-change: transform, opacity;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  .catalog-fan-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
 
   .catalog-overlay {
     position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.92);
@@ -480,7 +452,7 @@ const GLOBAL_STYLES = `
     background: #121200; border: 1px solid #2a2200; border-radius: 0.65rem;
     box-shadow: 0 30px 70px rgba(0,0,0,0.7), 0 0 0 1px rgba(196,160,48,0.15);
     position: relative; cursor: pointer; animation: coverIn 0.4s ease;
-    transition: transform 0.3s;
+    transition: transform 0.3s; will-change: transform;
   }
   .book-cover-card:hover { transform:translateY(-4px); }
   .book-cover-card::before {
@@ -514,13 +486,67 @@ const GLOBAL_STYLES = `
   .nav-arrow.left { left: -50px; }
   .nav-arrow.right { right: -50px; }
 
+  /* ── Realistic Book Animation CSS ── */
   .book-spread-pages {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
-    width: 100%; background: #C4A030; border-radius: 0.5rem;
-    overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,0.6);
-    animation: pageIn 0.3s ease;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    width: 100%; background: #111; border-radius: 0.5rem;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.5);
+    perspective: 2500px;
+    transform-style: preserve-3d;
+    position: relative;
   }
-  .book-page { background:#0d0d0d; aspect-ratio:210/297; display:flex; flex-direction:column; }
+  
+  /* Inner spine shadow to make it look like a book binding */
+  .book-spread-pages::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+    width: 40px; transform: translateX(-50%); z-index: 10;
+    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0) 100%);
+    pointer-events: none;
+  }
+
+  .book-page {
+    background: #0d0d0d; aspect-ratio: 210/297; display: flex; flex-direction: column;
+    position: relative; backface-visibility: hidden;
+    will-change: transform, filter;
+    overflow: hidden;
+  }
+  .book-page:first-child { transform-origin: right center; border-radius: 0.5rem 0 0 0.5rem; }
+  .book-page:last-child { transform-origin: left center; border-radius: 0 0.5rem 0.5rem 0; }
+
+  /* Next Page Turn (Right folding over to Left) */
+  .turn-next .book-page:first-child {
+    animation: pageFlipLeftIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .turn-next .book-page:last-child {
+    animation: pageShadowReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /* Prev Page Turn (Left folding over to Right) */
+  .turn-prev .book-page:first-child {
+    animation: pageShadowReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .turn-prev .book-page:last-child {
+    animation: pageFlipRightIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /* Initial opening fallback */
+  .turn-none .book-spread-pages {
+    animation: overlayIn 0.4s ease;
+  }
+
+  @keyframes pageFlipLeftIn {
+    0% { transform: rotateY(90deg); filter: brightness(1.6); z-index: 5; }
+    100% { transform: rotateY(0deg); filter: brightness(1); z-index: 5; }
+  }
+  @keyframes pageFlipRightIn {
+    0% { transform: rotateY(-90deg); filter: brightness(1.6); z-index: 5; }
+    100% { transform: rotateY(0deg); filter: brightness(1); z-index: 5; }
+  }
+  @keyframes pageShadowReveal {
+    0% { filter: brightness(0.2); }
+    100% { filter: brightness(1); }
+  }
+
   .img-placeholder {
     width:100%; height:100%; display:flex; flex-direction:column;
     align-items:center; justify-content:center; border:1.5px dashed #3a3000;
@@ -575,7 +601,30 @@ const GLOBAL_STYLES = `
   @media (max-width:600px) {
     .catalog-badge { width:52px; height:42px; bottom:18px; right:18px; border-radius: 0 6px 6px 6px; }
     .catalog-badge::before { width: 26px; height: 8px; top: -8px; border-radius: 4px 4px 0 0; }
-    .catalog-fan-card { width: 60px; height: 42px; font-size: 0.65rem; bottom: 20px; right: 20px; }
+  }
+
+  /* ── Service Preview Cards ── */
+  .service-preview-card {
+    position: relative; border-radius: 1rem; overflow: hidden;
+    aspect-ratio: 4/3; cursor: default;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    will-change: transform, box-shadow;
+  }
+  .service-preview-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(196,160,48,0.25); }
+  .service-preview-card img { width:100%; height:100%; object-fit:cover; display:block; transition: transform 0.5s ease; filter: brightness(0.85); will-change: transform; }
+  .service-preview-card:hover img { transform: scale(1.05); filter: brightness(1); }
+  .service-preview-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 1.5rem 1.25rem 1.1rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .service-preview-label span {
+    background: rgba(255,255,255,0.95); color: #111;
+    font-family: 'Inter', sans-serif; font-size: clamp(0.82rem,2.5vw,0.95rem);
+    font-weight: 700; padding: 0.55rem 1.1rem; border-radius: 2rem;
+    letter-spacing: 0.01em; white-space: nowrap;
   }
 
   /* ── Services Page ── */
@@ -601,13 +650,13 @@ const GLOBAL_STYLES = `
   .sv-col-title { font-family:'Bebas Neue',sans-serif; font-size:1.7rem; letter-spacing:0.05em; color:#F0EDE6; line-height:1; }
 
   .sv-img-primary { width:100%; border-radius:0.5rem; overflow:hidden; border:1px solid #1e1e00; position:relative; }
-  .sv-img-primary img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.6s ease; }
+  .sv-img-primary img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.6s ease; will-change: transform; }
   .sv-img-primary:hover img { transform:scale(1.03); }
   .sv-img-primary::after { content:''; position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 50%); pointer-events:none; }
 
   .sv-item-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin-top:2px; }
   .sv-item-cell { position:relative; aspect-ratio:1/1; overflow:hidden; background:#0d0d0d; cursor:default; }
-  .sv-item-cell img { width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease, filter 0.4s ease; filter:brightness(0.75) saturate(0.8); }
+  .sv-item-cell img { width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease, filter 0.4s ease; filter:brightness(0.75) saturate(0.8); will-change: transform; }
   .sv-item-cell:hover img { transform:scale(1.1); filter:brightness(1) saturate(1); }
   .sv-item-cell-label { position:absolute; inset:0; display:flex; align-items:flex-end; padding:0.4rem 0.5rem; background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 55%); opacity:0; transition:opacity 0.35s; pointer-events:none; }
   .sv-item-cell:hover .sv-item-cell-label { opacity:1; }
@@ -644,7 +693,7 @@ const GLOBAL_STYLES = `
   .sv-eq-cat-label::after { content:''; flex:1; height:1px; background:rgba(196,160,48,0.2); }
   .sv-eq-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
   .sv-eq-item { position:relative; aspect-ratio:4/3; overflow:hidden; background:#0d0d0d; }
-  .sv-eq-item img { width:100%; height:100%; object-fit:cover; transition:transform 0.5s, filter 0.4s; filter:brightness(0.7); }
+  .sv-eq-item img { width:100%; height:100%; object-fit:cover; transition:transform 0.5s, filter 0.4s; filter:brightness(0.7); will-change: transform; }
   .sv-eq-item:hover img { transform:scale(1.08); filter:brightness(1); }
   .sv-eq-item-tag { position:absolute; bottom:0; left:0; right:0; padding:0.35rem 0.45rem; background:rgba(0,0,0,0.8); font-size:0.55rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#E8C84A; }
 
@@ -695,10 +744,44 @@ const GLOBAL_STYLES = `
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeHash, setActiveHash] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn); return () => window.removeEventListener("scroll", fn); }, []);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+
+      if (location.pathname === "/") {
+        const sections = [
+          { id: "home", hash: "" },
+          { id: "about", hash: "#about" },
+          { id: "clients", hash: "#clients" },
+          { id: "contact", hash: "#contact" }
+        ];
+
+        let currentHash = "";
+        for (let i = sections.length - 1; i >= 0; i--) {
+          const section = sections[i];
+          const el = document.getElementById(section.id);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            // If the element's top is less than or equal to 1/3rd of the viewport height,
+            // it means we have scrolled to it.
+            if (rect.top <= window.innerHeight / 3) {
+              currentHash = section.hash;
+              break;
+            }
+          }
+        }
+        setActiveHash(currentHash);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Initial check
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [location.pathname]);
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -710,7 +793,7 @@ function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  const goTo = (path: string, hash?: string) => {
+  const goTo = (path: string, hash: string) => {
     setMenuOpen(false);
     if (path === location.pathname) {
       if (hash) { setTimeout(() => document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" }), 50); }
@@ -721,32 +804,44 @@ function Navbar() {
     }
   };
 
-  const isHome = location.pathname === "/";
-  const isServices = location.pathname === "/services";
-
   const NAV = [
-    { label: "Home", action: () => goTo("/") },
-    { label: "About", action: () => goTo("/", "#about") },
-    { label: "Our Services", action: () => goTo("/services") },
-    { label: "Clients", action: () => goTo("/", "#clients") },
-    { label: "Contact", action: () => goTo("/", "#contact") },
+    { label: "Home", path: "/", hash: "" },
+    { label: "About", path: "/", hash: "#about" },
+    { label: "Our Services", path: "/services", hash: "" },
+    { label: "Clients", path: "/", hash: "#clients" },
+    { label: "Contact", path: "/", hash: "#contact" },
   ];
+
+  // ── CHANGE 2: WhatsApp button instead of "Get In Touch" ──
+  const openWhatsApp = () => {
+    window.open("https://wa.me/966537637629", "_blank");
+  };
 
   return (
     <>
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 601, background: scrolled ? "rgba(8,8,8,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid #1a1a1a" : "none", transition: "all 0.4s", padding: scrolled ? "0.75rem 1.25rem" : "1.2rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => goTo("/")}>
-          <img src="/headerlogo.jpg" alt="Nex Vision Arabia" style={{ height: "42px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => goTo("/", "")}>
+          <img src="/headerlogo.jpg" alt="Nex Vision Arabia" decoding="async" style={{ height: "42px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
         </div>
 
         <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          {NAV.map(({ label, action }) => {
-            const isActive = (label === "Home" && isHome) || (label === "Our Services" && isServices);
+          {NAV.map(({ label, path, hash }) => {
+            const isActive = location.pathname === path && (path === "/services" || activeHash === hash);
             return (
-              <button key={label} className={`nav-link${isActive ? " active-link" : ""}`} onClick={action}>{label}</button>
+              <button key={label} className={`nav-link${isActive ? " active-link" : ""}`} onClick={() => goTo(path, hash)}>{label}</button>
             );
           })}
-          <button className="gold-btn" onClick={() => goTo("/", "#contact")} style={{ padding: "0.55rem 1.4rem", borderRadius: "0.4rem", fontSize: "0.85rem" }}>Get In Touch</button>
+          {/* WhatsApp button */}
+          <button
+            className="gold-btn"
+            onClick={openWhatsApp}
+            style={{ padding: "0.55rem 1.4rem", borderRadius: "0.4rem", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.45rem" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            WhatsApp
+          </button>
         </div>
 
         {/* ── Hamburger: animates to X when menu open, always visible ── */}
@@ -772,14 +867,12 @@ function Navbar() {
             zIndex: 10001,
             transition: "border-color 0.3s",
           }}>
-          {/* Bar 1 — rotates to top of X */}
           <span style={{
             display: "block", width: 20, height: 2,
             background: "#C4A030", borderRadius: 2,
             transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.2s",
             transform: menuOpen ? "translateY(7px) rotate(45deg)" : "none",
           }} />
-          {/* Bar 2 — fades out */}
           <span style={{
             display: "block", width: 20, height: 2,
             background: "#C4A030", borderRadius: 2,
@@ -787,7 +880,6 @@ function Navbar() {
             opacity: menuOpen ? 0 : 1,
             transform: menuOpen ? "scaleX(0)" : "none",
           }} />
-          {/* Bar 3 — rotates to bottom of X */}
           <span style={{
             display: "block", width: 20, height: 2,
             background: "#C4A030", borderRadius: 2,
@@ -797,7 +889,7 @@ function Navbar() {
         </button>
       </nav>
 
-      {/* ── Mobile menu: slides in from right, rendered outside <nav> ── */}
+      {/* ── Mobile menu ── */}
       <div
         style={{
           position: "fixed",
@@ -809,7 +901,6 @@ function Navbar() {
           overflow: "hidden",
         }}
       >
-        {/* Dark backdrop — fades in */}
         <div
           onClick={() => setMenuOpen(false)}
           style={{
@@ -822,7 +913,6 @@ function Navbar() {
             transition: "opacity 0.4s ease, backdrop-filter 0.4s ease",
           }}
         />
-        {/* Slide panel — comes in from right */}
         <div
           style={{
             position: "absolute",
@@ -841,10 +931,9 @@ function Navbar() {
             WebkitOverflowScrolling: "touch",
           }}
         >
-          {/* Menu header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", borderBottom: "1px solid #1a1a1a", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-              <img src="/headerlogo.jpg" alt="Nex Vision Arabia" style={{ height: "36px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
+              <img src="/headerlogo.jpg" alt="Nex Vision Arabia" decoding="async" style={{ height: "36px", width: "auto", objectFit: "contain", borderRadius: "4px" }} />
             </div>
             <button
               onClick={() => setMenuOpen(false)}
@@ -852,12 +941,11 @@ function Navbar() {
               style={{ background: "rgba(196,160,48,0.1)", border: "1px solid rgba(196,160,48,0.3)", color: "#C4A030", width: 44, height: 44, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.1rem", fontWeight: 700, WebkitTapHighlightColor: "transparent" }}>✕</button>
           </div>
 
-          {/* Nav links — staggered slide-in from right */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "1.5rem 1.5rem", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
-            {NAV.map(({ label, action }, i) => {
-              const isActive = (label === "Home" && isHome) || (label === "Our Services" && isServices);
+            {NAV.map(({ label, path, hash }, i) => {
+              const isActive = location.pathname === path && (path === "/services" || activeHash === hash);
               return (
-                <button key={label} onClick={action}
+                <button key={label} onClick={() => goTo(path, hash)}
                   style={{
                     background: "none", border: "none", borderBottom: "1px solid #111",
                     color: isActive ? "#C4A030" : "#F0EDE6",
@@ -866,7 +954,6 @@ function Navbar() {
                     letterSpacing: "0.12em", cursor: "pointer", textAlign: "left",
                     padding: "1rem 0", display: "flex", alignItems: "center",
                     justifyContent: "space-between",
-                    /* staggered slide-in only when open */
                     opacity: menuOpen ? 1 : 0,
                     transform: menuOpen ? "translateX(0)" : "translateX(30px)",
                     transition: `opacity 0.35s ease ${0.18 + i * 0.07}s, transform 0.35s cubic-bezier(0.4,0,0.2,1) ${0.18 + i * 0.07}s, color 0.2s`,
@@ -882,14 +969,23 @@ function Navbar() {
             })}
           </div>
 
-          {/* Bottom CTA area — slides up */}
           <div style={{
             padding: "1.25rem 1.5rem", borderTop: "1px solid #1a1a1a", background: "#080808", flexShrink: 0,
             opacity: menuOpen ? 1 : 0,
             transform: menuOpen ? "translateY(0)" : "translateY(20px)",
             transition: `opacity 0.35s ease 0.55s, transform 0.35s ease 0.55s`,
           }}>
-            <button className="gold-btn" onClick={() => { goTo("/", "#contact"); setMenuOpen(false); }} style={{ width: "100%", padding: "1rem", borderRadius: "0.5rem", fontSize: "1rem", marginBottom: "1rem", letterSpacing: "0.05em" }}>Get In Touch →</button>
+            {/* WhatsApp button in mobile menu too */}
+            <button
+              className="gold-btn"
+              onClick={() => { openWhatsApp(); setMenuOpen(false); }}
+              style={{ width: "100%", padding: "1rem", borderRadius: "0.5rem", fontSize: "1rem", marginBottom: "1rem", letterSpacing: "0.05em", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              WhatsApp
+            </button>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <a href="tel:+966537637629" style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
                 <div style={{ fontSize: "0.6rem", color: "#C4A030", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>📞 Phone</div>
@@ -902,8 +998,8 @@ function Navbar() {
               </a>
             </div>
           </div>
-        </div>{/* end slide panel */}
-      </div>{/* end overlay wrapper */}
+        </div>
+      </div>
     </>
   );
 }
@@ -920,7 +1016,7 @@ function Footer() {
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div className="footer-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "2rem", marginBottom: "2.5rem" }}>
           <div>
-            <img src="/footerlogo.png" alt="Nex Vision Arabia" style={{ height: "40px", width: "auto", objectFit: "contain", marginBottom: "0.85rem" }} />
+            <img src="/footerlogo.png" alt="Nex Vision Arabia" loading="lazy" decoding="async" style={{ height: "40px", width: "auto", objectFit: "contain", marginBottom: "0.85rem" }} />
             <p style={{ color: "#555", fontSize: "0.8rem", lineHeight: 1.8 }}>Industrial Solutions, Quality Revolution. Serving Saudi Arabia with manpower, equipment, and material supply.</p>
           </div>
           <div>
@@ -990,15 +1086,31 @@ function HomePage() {
   const { ref: aboutRef, visible: aboutVis } = useInView(0.08);
   const { ref: valRef, visible: valVis } = useInView(0.06);
   const { ref: clientRef, visible: clientVis } = useInView(0.06);
+  const { ref: servicePreviewRef, visible: servicePreviewVis } = useInView(0.06);
   const { ref: ctaRef, visible: ctaVis } = useInView(0.06);
+
+  // ── CHANGE 3: Service preview cards data ──
+  const SERVICE_PREVIEW_CARDS = [
+    { label: "Material Supplies", img: "/images/service-preview-material.png" },
+    { label: "Equipment Rental", img: "/images/service-preview-equipment.png" },
+    { label: "Manpower Supplies", img: "/images/service-preview-manpower.png" },
+  ];
 
   return (
     <>
       {/* ── HERO + STATS ── */}
       <section id="home" style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden", background: "#000" }}>
-        <video src="/images/hero-video.mp4" autoPlay loop muted playsInline style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <video src="/images/hero-video.mp4" autoPlay loop muted playsInline preload="auto" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
-        <div className="hero-content-area" style={{ position: "relative", zIndex: 2, maxWidth: 1000, margin: "0 auto", padding: "8rem 1.25rem 2rem", width: "100%" }}>
+        <div className="hero-content-area" style={{ position: "relative", zIndex: 2, maxWidth: 1000, margin: "0 auto", padding: "8rem 1.25rem 2rem", width: "100%", textAlign: "center" }}>
+          <div style={{ display: "inline-block", animation: "fadeUp 0.8s ease forwards" }}>
+            <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: "clamp(2.5rem, 6vw, 4.5rem)", color: "#F0EDE6", letterSpacing: "0.05em", lineHeight: 1.1, marginBottom: "0.8rem", textShadow: "0px 4px 15px rgba(0, 0, 0, 0.8), 0px 2px 5px rgba(0, 0, 0, 0.6)" }}>
+              INTEGRATED <span style={{ color: "#C4A030" }}>INDUSTRIAL</span> SOLUTIONS
+            </h1>
+            <p style={{ color: "#ddd", fontSize: "clamp(0.95rem, 2.5vw, 1.15rem)", fontWeight: 400, maxWidth: "650px", margin: "0 auto", lineHeight: 1.6, textShadow: "0px 2px 10px rgba(0, 0, 0, 0.9)" }}>
+              Empowering Saudi Arabia's future with premier manpower, equipment rental, and material supply services.
+            </p>
+          </div>
         </div>
         {/* Stats bar */}
         <div ref={statsRef} style={{ position: "relative", zIndex: 2, width: "100%", borderTop: "1px solid #1a1a1a", background: "#000", marginTop: "auto" }}>
@@ -1031,7 +1143,7 @@ function HomePage() {
             <button className="outline-btn" onClick={() => navigate("/services")} style={{ padding: "0.8rem 1.6rem", borderRadius: "0.4rem", fontSize: "0.88rem", width: "100%", maxWidth: 300 }}>Learn More About Our Services</button>
           </div>
           <div className="about-video-wrap" style={{ position: "relative", aspectRatio: "4/3", background: "#111", borderRadius: "0.5rem", overflow: "hidden", border: "1px solid #1a1a1a", animation: aboutVis ? "fadeIn 0.8s ease 0.2s forwards" : "none", opacity: 0 }}>
-            <video src="/images/about-video.mp4" autoPlay loop muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <video src="/images/about-video.mp4" autoPlay loop muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         </div>
       </section>
@@ -1063,7 +1175,88 @@ function HomePage() {
         <div className="marquee-wrap">
           <div className="marquee-track" style={{ alignItems: "center" }}>
             {[...CLIENT_LOGOS, ...CLIENT_LOGOS, ...CLIENT_LOGOS].map((logo, i) => (
-              <img key={i} src={logo} alt="Client Logo" style={{ height: "45px", width: "auto", objectFit: "contain", opacity: 0.7, flexShrink: 0 }} />
+              <img key={i} src={logo} alt="Client Logo" loading="lazy" decoding="async" style={{ height: "45px", width: "auto", objectFit: "contain", opacity: 0.7, flexShrink: 0 }} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CHANGE 3: SERVICE PREVIEW CARDS — above the contact section ── */}
+      <section ref={servicePreviewRef} style={{ padding: "4.5rem 1.25rem", background: "#000", borderBottom: "1px solid #1a1a1a" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "2.5rem", animation: servicePreviewVis ? "fadeUp 0.5s ease forwards" : "none", opacity: 0 }}>
+            <div className="section-tag">What We Offer</div>
+            <h2 className="section-title" style={{ marginTop: "0.5rem" }}>OUR <span style={{ color: "#C4A030" }}>SERVICES</span></h2>
+          </div>
+          <div
+            className="service-preview-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "1.5rem",
+            }}
+          >
+            {SERVICE_PREVIEW_CARDS.map((card, i) => (
+              <div
+                key={i}
+                className="service-preview-card"
+                onClick={() => navigate("/services")}
+                style={{
+                  animation: servicePreviewVis ? `fadeUp 0.5s ease ${0.1 + i * 0.12}s forwards` : "none",
+                  opacity: 0,
+                  cursor: "pointer",
+                  position: "relative",
+                  borderRadius: "1rem",
+                  overflow: "hidden",
+                  aspectRatio: "4/3",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-6px)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 16px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(196,160,48,0.25)";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(0,0,0,0.5)";
+                }}
+              >
+                <img
+                  src={card.img}
+                  alt={card.label}
+                  loading="lazy"
+                  decoding="async"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 0.5s ease", filter: "brightness(0.85)" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.05)"}
+                  onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"}
+                  onError={e => {
+                    const el = e.currentTarget as HTMLImageElement;
+                    el.style.display = "none";
+                    const parent = el.parentElement!;
+                    parent.style.background = "linear-gradient(135deg,#111,#1a1500)";
+                  }}
+                />
+                {/* Label pill at bottom */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0,
+                  padding: "2rem 1.25rem 1.25rem",
+                  background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{
+                    background: "rgba(255,255,255,0.95)",
+                    color: "#111",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: "clamp(0.82rem,2.5vw,0.95rem)",
+                    fontWeight: 700,
+                    padding: "0.55rem 1.1rem",
+                    borderRadius: "2rem",
+                    letterSpacing: "0.01em",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {card.label}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -1328,6 +1521,8 @@ function ServicesPage() {
                       <img
                         src={cat.img}
                         alt={cat.label}
+                        loading="lazy"
+                        decoding="async"
                         onError={e => {
                           const el = e.currentTarget as HTMLImageElement;
                           el.style.display = "none";
@@ -1385,6 +1580,8 @@ function ServicesPage() {
                         <img
                           src={item.img}
                           alt={item.name}
+                          loading="lazy"
+                          decoding="async"
                           onError={e => {
                             const el = e.currentTarget as HTMLImageElement;
                             el.style.display = "none";
