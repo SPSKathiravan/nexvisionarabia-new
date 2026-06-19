@@ -311,6 +311,7 @@ const GLOBAL_STYLES = `
   .service-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(196,160,48,0.3); }
 
   /* ── Desktop nav / Mobile toggle ── */
+  .mobile-btn { display: none; }
   @media (max-width:768px) {
     .desktop-nav { display:none !important; }
     .mobile-btn { display:flex !important; }
@@ -752,7 +753,7 @@ function Navbar() {
         className="mobile-btn"
         onClick={() => setMenuOpen(m => !m)}
         aria-label={menuOpen ? "Close menu" : "Open menu"}
-        style={{ display: "none", background: "none", border: "1px solid #2a2a2a", color: "#F0EDE6", borderRadius: "0.4rem", padding: "0.6rem 0.75rem", cursor: "pointer", flexDirection: "column", gap: "5px", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center", WebkitTapHighlightColor: "transparent" }}>
+        style={{ background: "none", border: "1px solid #2a2a2a", color: "#F0EDE6", borderRadius: "0.4rem", padding: "0.6rem 0.75rem", cursor: "pointer", flexDirection: "column", gap: "5px", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center", WebkitTapHighlightColor: "transparent" }}>
         {[0, 1, 2].map(i => <span key={i} style={{ display: "block", width: 20, height: 2, background: "#C4A030", borderRadius: 2, transition: "transform 0.3s" }} />)}
       </button>
 
