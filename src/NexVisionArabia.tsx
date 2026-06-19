@@ -890,15 +890,15 @@ function Navbar() {
             transition: `opacity 0.35s ease 0.55s, transform 0.35s ease 0.55s`,
           }}>
             <button className="gold-btn" onClick={() => { goTo("/", "#contact"); setMenuOpen(false); }} style={{ width: "100%", padding: "1rem", borderRadius: "0.5rem", fontSize: "1rem", marginBottom: "1rem", letterSpacing: "0.05em" }}>Get In Touch →</button>
-            <div className="mobile-contact-row" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <a href="tel:+966537637629" style={{ textDecoration: "none", textAlign: "center" }}>
-                <div style={{ fontSize: "0.6rem", color: "#555", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.2rem" }}>Phone</div>
-                <div style={{ color: "#888", fontSize: "0.82rem" }}>+966 53 763 7629</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <a href="tel:+966537637629" style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+                <div style={{ fontSize: "0.6rem", color: "#C4A030", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>📞 Phone</div>
+                <div style={{ color: "#ccc", fontSize: "0.88rem", fontWeight: 500 }}>+966 53 763 7629</div>
               </a>
-              <div style={{ width: 1, background: "#1a1a1a" }} />
-              <a href="mailto:info@nexvisionarabia.com" style={{ textDecoration: "none", textAlign: "center" }}>
-                <div style={{ fontSize: "0.6rem", color: "#555", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.2rem" }}>Email</div>
-                <div style={{ color: "#888", fontSize: "0.82rem" }}>info@nexvisionarabia.com</div>
+              <div style={{ height: 1, background: "#1a1a1a" }} />
+              <a href="mailto:info@nexvisionarabia.com" style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+                <div style={{ fontSize: "0.6rem", color: "#C4A030", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>✉ Email</div>
+                <div style={{ color: "#ccc", fontSize: "0.88rem", fontWeight: 500 }}>info@nexvisionarabia.com</div>
               </a>
             </div>
           </div>
